@@ -36,12 +36,12 @@
         o.SetRequestHeader "Content-Type", "application/json"
         o.SetRequestHeader "Content-Length", Len(json)
         o.Send json
-        Response.Write json
+
         postJSON = o.ResponseText
     End Function
 
     Private Function parseMandrillEmailResponse(json)
-      Dim j, r()
+      Dim i, j, r()
       Set j = New aspJSON
       j.loadJSON(json)
 
@@ -121,9 +121,6 @@
     Public Property Get Attachments()
       Attachments = m_Attachments
     End Property
-    Public Property Let Attachments(a)
-      m_Attachments = a
-    End Property
 
     Private m_Subaccount
     Public Property Get Subaccount()
@@ -157,7 +154,19 @@
       Set m_Headers = h
     End Property
 
+    Public Sub Class_Initialize
+      Dim a()
+      Redim a(0)
+      m_Attachments = a
+    End Sub
+
+    Public Sub AddAttachment(attachment)
+      ReDim Preserve m_Attachments(UBound(m_Attachments) + 1)
+      Set m_Attachments(UBound(m_Attachments) - 1) = attachment
+    End Sub
+
     Public Function ToJSON(apiKey)
+      Dim json, i, m, h
       Set json = New aspJSON
 
       With json.data
@@ -196,8 +205,8 @@
             End With
           End If
 
-          .Add "tags", json.Collection()
           If IsArray(m_Tags) Then
+            .Add "tags", json.Collection()
             With .Item("tags")
               For i = 0 To UBound(m_Tags) - 1
                 .Add i, m_Tags(i)
@@ -205,8 +214,8 @@
             End With
           End If
 
-          .Add "attachments", json.Collection()
           If IsArray(m_Attachments) Then
+            .Add "attachments", json.Collection()
             With .Item("attachments")
               For i = 0 To UBound(m_Attachments) - 1
                 If IsObject(m_Attachments(i)) Then
@@ -233,8 +242,8 @@
           If StrComp(TypeName(m_Headers), "Dictionary") = 0 Then
             .Add "headers", json.Collection()
             With .Item("headers")
-              For Each m In m_Headers
-                .Add m, m_Headers(m)
+              For Each h In m_Headers
+                .Add h, m_Headers(h)
               Next
             End With
           End If
